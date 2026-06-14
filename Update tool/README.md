@@ -1,8 +1,8 @@
 # Data Pack Installer
 
 `apply_data_pack.rb` installs a generation/version data pack from the
-[PokemonWorkshop/GameDataPacks](https://github.com/PokemonWorkshop/GameDataPacks)
-repository into your Pokemon Studio / PSDK project.
+[invatorzen/GameDataPacks](https://github.com/invatorzen/GameDataPacks)
+fork into your Pokemon Studio / PSDK project.
 
 Two ways to apply a pack:
 
@@ -13,7 +13,7 @@ A timestamped backup is created before any file is touched, so a bad run can alw
 
 ## Requirements
 
-- Place `apply_data_pack.rb` in a subfolder in your **project's root folder** (the folder containing `project.studio`) like 'tools'
+- Run from your **project root** (the folder containing `project.studio`), or just double-click `tools/apply_data_pack.bat` — it auto-finds the project root.
 - [Ruby](https://rubyinstaller.org/)
 - For remote source mode: `git` on your PATH + internet access. (The script uses a sparse partial clone so only the chosen version folder is downloaded, not the full ~340 MB repo.)
 - OR for local source mode: a clone or extracted copy of the GameDataPacks repository.
@@ -84,7 +84,7 @@ If neither `--local` nor `--remote` is given, you'll be asked which to use.
 
 ## Troubleshooting
 
-- **"could not find a Pokemon Studio project root"** — `apply_data_pack.rb` should be placed in a subfolder in your project's root folder (the folder containing `project.studio`), like a folder named 'tools'.
+- **"could not find a Pokemon Studio project root"** — run `apply_data_pack.rb` in the root of your project, or in a subfolder of your project like 'tools'.
 - **"git is not installed or not on PATH"** — install Git, or clone the repo locally and give it as a filepath.
 - **`git clone failed`** — check your internet connection and that you can reach `github.com`. Behind a proxy you may need to configure Git's `http.proxy` setting.
 - **"FROM pack has no manifest.json"** — your local clone of GameDataPacks predates the `Manifest tool/` PR. Pull the latest, or run the generator yourself.

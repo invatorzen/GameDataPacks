@@ -1,7 +1,7 @@
 # Pokemon Studio Data Pack Installer
 #
 # Interactively (or via flags) installs a generation/version data pack from the
-# PokemonWorkshop/GameDataPacks repository into the current Pokemon Studio /
+# invatorzen/GameDataPacks fork into the current Pokemon Studio /
 # PSDK project. Mirrors the manual steps in that repo's README:
 #   1. Wipe Data/Studio/dex (old dex filenames clash with the pack)
 #   2. Copy audio/, Data/, graphics/ from the chosen version folder, overwriting
@@ -22,9 +22,10 @@ require 'json'
 require 'csv'
 require 'time'
 
-REPO_GIT_URL = 'https://github.com/PokemonWorkshop/GameDataPacks.git'.freeze
+REPO_GIT_URL = 'https://github.com/invatorzen/GameDataPacks.git'.freeze
 
-# Hard-coded list mirrors the repo's folder structure
+# Hard-coded list mirrors the repo's folder structure so we don't need a
+# network call just to render the menu.
 GENERATIONS = {
   1 => ['red-green-blue-yellow'],
   2 => ['gold-silver', 'crystal'],
@@ -136,13 +137,18 @@ def prompt(msg, default = nil)
   input || default
 end
 
-# Walks up from the script's location looking for project.studio so the script
-# works whether launched from the project root, from tools/, or by double-click.
-# If no project root is found above the script, prompts the user for the path.
+# Returns true if `dir` looks like a Pokemon Studio project root.
+def studio_project_root?(dir)
+  File.exist?(File.join(dir, 'project.studio')) && Dir.exist?(File.join(dir, 'Data', 'Studio'))
+end
+
+# Walks up from the script's location looking for project.studio. If not
+# found (e.g. the .rb was copied somewhere outside a project), prompts the
+# user for a path instead of aborting.
 def chdir_to_project_root!
   dir = File.expand_path(__dir__)
   5.times do
-    if File.exist?(File.join(dir, 'project.studio')) && Dir.exist?(File.join(dir, 'Data', 'Studio'))
+    if studio_project_root?(dir)
       Dir.chdir(dir)
       return
     end
@@ -152,22 +158,23 @@ def chdir_to_project_root!
     dir = parent
   end
 
-  puts 'Could not auto-detect a Pokemon Studio project above this script.'
-  puts 'Please enter the path to your PSDK project folder'
-  puts '(the folder containing project.studio and Data/Studio).'
+  puts 'Could not find a Pokemon Studio project root (no project.studio / Data/Studio above this script).'
   loop do
-    raw = prompt('Project path')
-    abort 'Aborted.' if raw.nil? || raw.empty?
+    raw = prompt('Path to your Pokemon Studio project folder')
+    abort 'Aborted.' if raw.nil? || raw.strip.empty?
 
-    project_dir = normalize_local_path(raw)
-    if File.exist?(File.join(project_dir, 'project.studio')) && Dir.exist?(File.join(project_dir, 'Data', 'Studio'))
-      Dir.chdir(project_dir)
-      puts "Using project: #{project_dir}"
+    candidate = normalize_local_path(raw)
+    if Dir.exist?(candidate) && studio_project_root?(candidate)
+      Dir.chdir(candidate)
       return
     end
 
-    puts "That folder doesn't look like a Pokemon Studio project"
-    puts '(no project.studio or Data/Studio found). Please try again.'
+    if !Dir.exist?(candidate)
+      puts "That path does not exist: #{candidate}"
+    else
+      puts "That folder does not look like a Pokemon Studio project (no project.studio / Data/Studio inside)."
+    end
+    puts 'Please try again.'
   end
 end
 
